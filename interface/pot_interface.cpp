@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "types.h"
-#include "linscan.h"
+#include "pot.h"
 #include "memusage.h"
 #include "io.h"
 

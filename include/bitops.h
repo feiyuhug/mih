@@ -42,6 +42,98 @@ inline int match(UINT8*P, UINT8*Q, int codelb) {
     }
 }
 
+inline int match_po(UINT8*P, UINT8*Q, int codelb) {
+    switch(codelb) {
+    case 4: // 32 bit
+	return popcnt(*(UINT32*)P & *(UINT32*)Q);
+    case 8: // 64 bit
+	return popcntll(((UINT64*)P)[0] & ((UINT64*)Q)[0]);
+    case 16: // 128 bit
+	return popcntll(((UINT64*)P)[0] & ((UINT64*)Q)[0]) \
+	    + popcntll(((UINT64*)P)[1] & ((UINT64*)Q)[1]);
+    case 32: // 256 bit
+	return popcntll(((UINT64*)P)[0] & ((UINT64*)Q)[0]) \
+	    + popcntll(((UINT64*)P)[1] & ((UINT64*)Q)[1]) \
+	    + popcntll(((UINT64*)P)[2] & ((UINT64*)Q)[2]) \
+	    + popcntll(((UINT64*)P)[3] & ((UINT64*)Q)[3]);
+    case 64: // 512 bit
+	return popcntll(((UINT64*)P)[0] & ((UINT64*)Q)[0]) \
+	    + popcntll(((UINT64*)P)[1] & ((UINT64*)Q)[1]) \
+	    + popcntll(((UINT64*)P)[2] & ((UINT64*)Q)[2]) \
+	    + popcntll(((UINT64*)P)[3] & ((UINT64*)Q)[3]) \
+	    + popcntll(((UINT64*)P)[4] & ((UINT64*)Q)[4]) \
+	    + popcntll(((UINT64*)P)[5] & ((UINT64*)Q)[5]) \
+	    + popcntll(((UINT64*)P)[6] & ((UINT64*)Q)[6]) \
+	    + popcntll(((UINT64*)P)[7] & ((UINT64*)Q)[7]);
+    default:
+	int output = 0;
+	for (int i=0; i<codelb; i++) 
+	    output+= lookup[P[i] & Q[i]];
+	return output;
+    }
+}
+
+inline int o_c(UINT8*P, int codelb) {
+    switch(codelb) {
+    case 4: // 32 bit
+	return popcnt(*(UINT32*)P);
+    case 8: // 64 bit
+	return popcntll(((UINT64*)P)[0]);
+    case 16: // 128 bit
+	return popcntll(((UINT64*)P)[0]) \
+	    + popcntll(((UINT64*)P)[1]);
+    case 32: // 256 bit
+	return popcntll(((UINT64*)P)[0]) \
+	    + popcntll(((UINT64*)P)[1]) \
+	    + popcntll(((UINT64*)P)[2]) \
+	    + popcntll(((UINT64*)P)[3]);
+    case 64: // 512 bit
+	return popcntll(((UINT64*)P)[0]) \
+	    + popcntll(((UINT64*)P)[1]) \
+	    + popcntll(((UINT64*)P)[2]) \
+	    + popcntll(((UINT64*)P)[3]) \
+	    + popcntll(((UINT64*)P)[4]) \
+	    + popcntll(((UINT64*)P)[5]) \
+	    + popcntll(((UINT64*)P)[6]) \
+	    + popcntll(((UINT64*)P)[7]);
+    default:
+	int output = 0;
+	for (int i=0; i<codelb; i++) 
+	    output+= lookup[P[i]];
+	return output;
+    }
+}
+
+inline void op_and(UINT8*P, UINT8*Q, UINT8*output, int codelb) {
+    switch(codelb) {
+    case 4: // 32 bit
+	*(UINT32*)output = *(UINT32*)P & *(UINT32*)Q;
+    case 8: // 64 bit
+	*(UINT64*)output = *(UINT64*)P & *(UINT64*)Q;
+    case 16: // 128 bit
+	((UINT64*)output)[0] = ((UINT64*)P)[0] & ((UINT64*)Q)[0];
+	((UINT64*)output)[1] = ((UINT64*)P)[1] & ((UINT64*)Q)[1];
+    case 32: // 256 bit
+	((UINT64*)output)[0] = ((UINT64*)P)[0] & ((UINT64*)Q)[0];
+	((UINT64*)output)[1] = ((UINT64*)P)[1] & ((UINT64*)Q)[1];
+	((UINT64*)output)[2] = ((UINT64*)P)[2] & ((UINT64*)Q)[2];
+	((UINT64*)output)[3] = ((UINT64*)P)[3] & ((UINT64*)Q)[3];
+    case 64: // 512 bit
+	((UINT64*)output)[0] = ((UINT64*)P)[0] & ((UINT64*)Q)[0];
+	((UINT64*)output)[1] = ((UINT64*)P)[1] & ((UINT64*)Q)[1];
+	((UINT64*)output)[2] = ((UINT64*)P)[2] & ((UINT64*)Q)[2];
+	((UINT64*)output)[3] = ((UINT64*)P)[3] & ((UINT64*)Q)[3];
+	((UINT64*)output)[4] = ((UINT64*)P)[4] & ((UINT64*)Q)[4];
+	((UINT64*)output)[5] = ((UINT64*)P)[5] & ((UINT64*)Q)[5];
+	((UINT64*)output)[6] = ((UINT64*)P)[6] & ((UINT64*)Q)[6];
+	((UINT64*)output)[7] = ((UINT64*)P)[7] & ((UINT64*)Q)[7];
+    default:
+	for (int i=0; i<codelb; i++)
+		output[i] = p[i] & Q[i];
+	return;
+    }
+}
+
 /* b <= 64 */
 inline void split (UINT64 *chunks, UINT8 *code, int m, int mplus, int b) {
     UINT64 temp = 0x0;

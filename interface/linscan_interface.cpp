@@ -24,7 +24,7 @@ int main (int argc, char**argv) {
 
     char *infile = argv[1];
     char *outfile = argv[2];
-		
+	
     UINT32 N = 0;
     UINT32 NQ = 0, Q0 = 0, Q1 = 0;
     int B = 0;
