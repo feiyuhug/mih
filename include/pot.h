@@ -19,3 +19,9 @@ struct pot_node {
 
 pot_node* buildPoTree(UINT8 *code_db, UINT32 N, UINT32 dim1codes);
 
+void pot_query(UINT64 *res, UINT64 *res_ind, UINT8 *codes, UINT8 *compcodes, 
+	pot_node *pot, UINT8 *queries, UINT32 d, UINT32 dim1codes);
+
+void pot_query(UINT64 *res, UINT8 *codes, UINT8 *compcodes, pot_node *pot, UINT8 *queries, 
+	UINT32 NQ, UINT32 d, UINT32 dim1codes)
+
