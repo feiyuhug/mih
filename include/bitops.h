@@ -104,7 +104,7 @@ inline int o_c(UINT8*P, int codelb) {
     }
 }
 
-inline int o_de(UINT8*P, UINT8*Q, int codelb) {
+inline int order_de(UINT8*P, UINT8*Q, int codelb) {
 	return o_c(P, codelb) - match_po(P, Q, codelb);
 }
 
@@ -133,7 +133,7 @@ inline void op_and(UINT8*P, UINT8*Q, UINT8*output, int codelb) {
 	((UINT64*)output)[7] = ((UINT64*)P)[7] & ((UINT64*)Q)[7];
     default:
 	for (int i=0; i<codelb; i++)
-		output[i] = p[i] & Q[i];
+		output[i] = P[i] & Q[i];
 	return;
     }
 }

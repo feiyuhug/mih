@@ -14,3 +14,9 @@ target_link_libraries (mih ${HDF5_LIB})
 project (linscan)
 add_executable (linscan interface/linscan_interface.cpp src/linscan.cpp interface/loadVar.cpp interface/saveRes.cpp)
 target_link_libraries (linscan ${HDF5_LIB})
+
+project (pot)
+add_executable (pot interface/pot_interface.cpp src/pot.cpp interface/loadVar.cpp interface/saveRes.cpp)
+target_link_libraries (pot ${HDF5_LIB})
+
+

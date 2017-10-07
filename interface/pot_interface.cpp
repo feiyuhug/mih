@@ -18,6 +18,7 @@ int main (int argc, char**argv) {
 	printf(" -Q <number>          Set the number of query points to use from <infile>, default all\n");
 	printf(" -B <number>          Set the number of bits per code, default autodetect\n");
 	printf(" -K <number>          Set number of nearest neighbors to be retrieved\n");
+    printf(" -D <number>          Set hammin dist\n");
 	printf("\n");
 	return 0;
     }
@@ -29,6 +30,7 @@ int main (int argc, char**argv) {
     UINT32 NQ = 0, Q0 = 0, Q1 = 0;
     int B = 0;
     UINT32 K = -1;
+    UINT32 D = -1;
 
     for (int argnum = 3; argnum < argc; argnum++) {
 	if (argv[argnum][0] == '-') {
@@ -39,6 +41,9 @@ int main (int argc, char**argv) {
 	    case 'K':
 		K = atoi(argv[++argnum]);
 		break;
+        case 'D':
+        D = atoi(argv[++argnum]);
+        break;
 	    case 'N':
 		N = atoi(argv[++argnum]);
 		break;
@@ -115,9 +120,24 @@ int main (int argc, char**argv) {
     printf(" K = %4d |", K);
     printf("\n");
 
-    /* Run linear scan and store the required stats */
+    /* build product order tree */
+    UINT8 *compCode = (UINT8*)malloc((size_t)N * dim1codes * sizeof(UINT8));
     clock_t start0, end0;
     time_t start1, end1;
+
+    start1 = time(NULL);
+    start0 = clock();
+
+    pot_node* pot_root = buildPoTree(codes_db, compCode, N, dim1codes);
+    end0 = clock();
+    end1 = time(NULL);
+
+    double build_tr_cput = (double)(end0-start0) / (CLOCKS_PER_SEC);
+    double build_tr_wt = (double)(end1-start1);
+    printf("building tree: cput: %.3fs\twt:% .3fs\n", build_tr_cput, build_tr_wt);
+    //print_potree(pot_root);
+    /* Run linear scan and store the required stats */
+
 	
     printf("query... ");
     fflush (stdout);
@@ -141,19 +161,21 @@ int main (int argc, char**argv) {
     result.res[0] = (UINT32 *) malloc(sizeof(UINT32)*K*NQ);
     for (size_t i=1; i<NQ; i++)
 	result.res[i] = result.res[i-1] + K;
-
+    result.nres = (UINT32 **) malloc(sizeof(UINT32*));
+    result.nres[0] = (UINT32 *) malloc(sizeof(UINT32)*NQ);
+    /**
     result.nres = (UINT32 **) malloc(sizeof(UINT32*)*NQ);
     result.nres[0] = (UINT32 *) malloc(sizeof(UINT32)*(B+1)*NQ);
     for (size_t i=1; i<NQ; i++)
 	result.nres[i] = result.nres[i-1] + (B+1);
-
+    **/
     result.stats = NULL;
 
     start1 = time(NULL);
     start0 = clock();
 
-    linscan_query(result.nres[0], result.res[0], codes_db, codes_query, N, NQ, B, K,
-		  dim1codes, dim1queries);
+    pot_query_batch(result.res, result.nres[0], codes_db, compCode, pot_root, codes_query, NQ, D,
+		  dim1codes);
 
     end0 = clock();
     end1 = time(NULL);
@@ -170,17 +192,19 @@ int main (int argc, char**argv) {
     printf("Writing results to file %s... ", outfile);
     fflush(stdout);
 
-    saveRes(outfile, "linscan", &result, 1, 2);
+    saveRes(outfile, "pot", &result, 1, 2);
 
     printf("done.\n");
     /* Done with the output file */
 
     free(codes_query);
     free(codes_db);
+    free(compCode);
     free(result.res[0]);
     free(result.res);
     free(result.nres[0]);
     free(result.nres);
+    free(pot_root);
 
     return 0;
 }
