@@ -80,7 +80,7 @@ int main (int argc, char**argv) {
 	return EXIT_FAILURE;
     }
 
-    if (K < 1 || K > N) {
+    if (K < 1 || K > 2*N) {
 	printf("A valid K is not provided.\n");
 	return EXIT_FAILURE;
     }
@@ -102,6 +102,10 @@ int main (int argc, char**argv) {
     if (B == 0)
 	B = B_over_8 * 8; /* in this case B_over_8 is set within load_bin_codes */
     dim1codes = B / 8;
+    //UINT8 codes_db_[] = {0x93, 0x8B, 0x6C, 0x3C};
+    //codes_db = codes_db_;
+
+
 
     printf("done.\n");
     printf("Loading queries... ");
@@ -110,6 +114,8 @@ int main (int argc, char**argv) {
     codes_query = (UINT8*)malloc((size_t)NQ * (B/8) * sizeof(UINT8));
     load_bin_codes(infile, "Q", codes_query, &NQ, &B_over_8, Q0);
     dim1queries = B/8;
+    //UINT8 codes_query_[] = {0x87, 0x22};
+    //codes_query = codes_query_;
 
     printf("done.\n");
     /* Done with the inputs */
@@ -118,10 +124,11 @@ int main (int argc, char**argv) {
     printf(" NQ = %d, range [%d %d) |", NQ, Q0, Q1);
     printf(" B = %d |", B);
     printf(" K = %4d |", K);
+    printf(" D = %d |", D);
     printf("\n");
 
     /* build product order tree */
-    UINT8 *compCode = (UINT8*)malloc((size_t)N * dim1codes * sizeof(UINT8));
+    UINT8 *compCode = (UINT8*)malloc((size_t)N * (B / 8) * sizeof(UINT8));
     clock_t start0, end0;
     time_t start1, end1;
 
@@ -135,7 +142,17 @@ int main (int argc, char**argv) {
     double build_tr_cput = (double)(end0-start0) / (CLOCKS_PER_SEC);
     double build_tr_wt = (double)(end1-start1);
     printf("building tree: cput: %.3fs\twt:% .3fs\n", build_tr_cput, build_tr_wt);
+    
     //print_potree(pot_root);
+    /**
+    for(int t = 0; t < 4; t++) {
+        printf("%02X\n", codes_db[t]);
+    }
+    printf("------\n");
+    for(int t = 0; t < 3; t++) {
+        printf("%02X\n", compCode[t]);
+    }
+    **/
     /* Run linear scan and store the required stats */
 
 	
@@ -175,7 +192,7 @@ int main (int argc, char**argv) {
     start0 = clock();
 
     pot_query_batch(result.res, result.nres[0], codes_db, compCode, pot_root, codes_query, NQ, D,
-		  dim1codes);
+		  dim1codes, K);
 
     end0 = clock();
     end1 = time(NULL);
@@ -204,7 +221,7 @@ int main (int argc, char**argv) {
     free(result.res);
     free(result.nres[0]);
     free(result.nres);
-    free(pot_root);
+    delete pot_root;
 
     return 0;
 }
